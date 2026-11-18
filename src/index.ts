@@ -1,10 +1,12 @@
 interface ApiOnlineResult {
+    url: string
     status: "ONLINE"
     httpCode: number;
     responseTime: number;
 }
 
 interface ApiFailureResult {
+    url: string
     status: "OFFLINE" | "ERROR";
     errorMessage: string;
 }
@@ -12,9 +14,6 @@ interface ApiFailureResult {
 type CheckApiResult = ApiOnlineResult | ApiFailureResult;
 
 async function checkApi(url: string): Promise<CheckApiResult> {
-    if(!url) {
-        return { status: 'ERROR', errorMessage: 'Url not given'};
-    }
 
     const startTime = performance.now();
 
@@ -28,6 +27,7 @@ async function checkApi(url: string): Promise<CheckApiResult> {
         const responseTime = Math.floor(endTime - startTime);
 
         return {
+            url,
             status: 'ONLINE',
             httpCode: response.status,
             responseTime,
@@ -36,11 +36,13 @@ async function checkApi(url: string): Promise<CheckApiResult> {
     } catch (error) {
         if(error instanceof Error) {
             return {
+                url,
                 status: "OFFLINE",
                 errorMessage: error.message,
             }
         } else {
             return {
+                url,
                 status: 'ERROR',
                 errorMessage: String(error)
             }
@@ -49,25 +51,31 @@ async function checkApi(url: string): Promise<CheckApiResult> {
 
 }
 
+async function checkMultipleApis(urls: string[]): Promise<CheckApiResult[]> {
+
+    return Promise.all(urls.map(url => checkApi(url)));
+
+}
+
 async function main(): Promise<void> {
     const args = process.argv
-    const url = args[2]
+    const urls = args.slice(2)
 
-    if(!url) {
-        console.error("Url is required")
+    if(urls.length === 0) {
+        console.error("At least one url is required")
         return
     }
 
-
-    const response = await checkApi(url);
-
-
-    if(response.status !== "ONLINE") {
-        console.log(`Api status: ${response.status}\nError: ${response.errorMessage}`);
-        return;
+    const responses = await checkMultipleApis(urls)
+    for(const response of responses) {
+        console.log('Checking url:', response.url)
+        if(response.status !== "ONLINE") {
+            console.log(`Api status: ${response.status}\nError: ${response.errorMessage}\n`);
+            continue;
+        }
+        console.log(`Api status: ${response.status}\nHTTP status: ${response.httpCode}\nResponse time: ${response.responseTime} ms\n`)
     }
 
-    console.log(`Api status: ${response.status}\nHTTP status: ${response.httpCode}\nResponse time: ${response.responseTime} ms`)
 }
 
 main()
