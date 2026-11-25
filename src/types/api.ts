@@ -8,6 +8,8 @@ interface ApiOnlineResult {
 interface ApiFailureResult {
     url: string
     status: "OFFLINE" | "ERROR";
+    httpCode?: number;
+    responseTime?: number;
     errorMessage: string;
 }
 

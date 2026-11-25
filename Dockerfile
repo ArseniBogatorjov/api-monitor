@@ -6,5 +6,7 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-ENTRYPOINT ["npx", "tsx", "src/index.ts"]
 
+RUN npm run build
+
+ENTRYPOINT ["node", "dist/index.js"]
