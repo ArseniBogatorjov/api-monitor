@@ -7,5 +7,5 @@ if(!Number.isInteger(timeout) || timeout <= 0) throw new Error("timeout should b
 
 
 export const config: Config = {
-    API_TIMEOUT_MS: timeout,
+  API_TIMEOUT_MS: timeout,
 }
