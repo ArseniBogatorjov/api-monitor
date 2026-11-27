@@ -1,8 +1,8 @@
 export interface CliArgsObj {
-  // TODO: make strict command types
-  command: string,
+  command: "check" | "help",
   urls: string[],
   options: {
     timeout?: number
   }
 }
+

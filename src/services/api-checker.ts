@@ -2,7 +2,7 @@ import type {CheckApiResult} from "../types/api.js";
 import {config} from "../config/index.js";
 import {checkIsValidUrl} from "../validations/url-validation.js";
 
-async function checkApi(url: string): Promise<CheckApiResult> {
+async function checkApi(url: string, timeout: number | undefined): Promise<CheckApiResult> {
   const isValidUrl = checkIsValidUrl(url);
 
   if(!isValidUrl) {
@@ -17,7 +17,7 @@ async function checkApi(url: string): Promise<CheckApiResult> {
   try {
     const response = await fetch(url, {
       method: 'GET',
-      signal: AbortSignal.timeout(config.API_TIMEOUT_MS)
+      signal: AbortSignal.timeout(timeout ?? config.API_TIMEOUT_MS)
     })
 
     const endTime = performance.now();
@@ -61,8 +61,8 @@ async function checkApi(url: string): Promise<CheckApiResult> {
 }
 
 
-export async function checkMultipleApis(urls: string[]): Promise<CheckApiResult[]> {
-  return Promise.all(urls.map(url => checkApi(url)));
+export async function checkMultipleApis(urls: string[], timeout: number | undefined): Promise<CheckApiResult[]> {
+  return Promise.all(urls.map(url => checkApi(url, timeout)));
 }
 
 

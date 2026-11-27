@@ -1,48 +1,32 @@
 import "dotenv/config";
-import {checkMultipleApis} from "./services/api-checker.js"
 import {getCliArgs, parseCliArgs} from "./cli/args.js";
+import {checkCommand} from "./cli/commands/check.js";
+import {helpCommand} from "./cli/commands/help.js";
 
 async function main(): Promise<void> {
-  const args = getCliArgs()
-  const parsedArgs = parseCliArgs(args)
-  const urls = parsedArgs.urls
+  try {
+    const args = getCliArgs()
+    const parsedArgs = parseCliArgs(args)
+    const urls = parsedArgs.urls
 
-  switch(parsedArgs.command) {
-    case 'check': {
-      if(urls.length === 0) {
-        console.error('At least one url is required')
-        return
+    switch(parsedArgs.command) {
+      case 'check': {
+        await checkCommand(urls, parsedArgs.options.timeout)
+        break
       }
-      const responses = await checkMultipleApis(urls)
-      for (const response of responses) {
-        console.log("Checking url:", response.url);
-        console.log("Api status:", response.status);
-
-        if (response.httpCode !== undefined) {
-          console.log("HTTP code:", response.httpCode);
-        }
-
-        if (response.responseTime !== undefined) {
-          console.log("Response time:", `${response.responseTime} ms`);
-        }
-
-        if (response.status !== "ONLINE") {
-          console.log("Error:", response.errorMessage);
-        }
-
-        console.log();
+      case 'help': {
+        // TODO: make normal help list
+        helpCommand()
+        break
       }
-      break;
     }
-    case 'help': {
-      // TODO: make normal help list
-      console.log('Possible commands:\ncheck http://api.example-url\nhelp')
-      break
+  } catch(error) {
+    if(error instanceof Error) {
+      console.error(error.message)
+    } else {
+      console.error(String(error))
     }
-    default: {
-      console.error('Invalid command, type help to list list of commands')
-      break
-    }
+    process.exit(1)
   }
 
 }
